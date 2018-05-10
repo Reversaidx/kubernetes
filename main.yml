@@ -1,0 +1,39 @@
+- name: createdisk
+  hosts: kub04
+  tasks:
+   - name: parted
+     parted:
+      device: /dev/sdb
+      number: 1
+      state: present
+   - name: test
+     hostname:
+      name="{{ inventory_hostname }}"
+   - name: change hosts
+     copy: src=hosts dest=/etc/hosts owner=root
+   - name: install ceph
+     apt: name={{ item }} update_cache=yes
+     with_items:
+      - ceph-deploy
+      - ceph-common
+     when: inventory_hostname == 'kub01'
+   - name: install python2
+     apt: name=python
+   - name: genereta kub
+     command: "swapoff -a"
+   - name: copykey
+     copy: src="{{ item.src }}" dest="{{ item.dest }}" owner=root mode=0600
+     with_items:
+      - { src: 'kub01.key', dest: '/root/.ssh/id_rsa' }
+      - { src: 'kub01.key.pub', dest: '/root/.ssh/id_rsa.pub' }
+     when: inventory_hostname == 'kub01'
+   - name: disable swap
+     mount:
+      name: swap
+      fstype: swap
+      state: absent
+   - name:  Set authorized key taken from file
+     authorized_key:
+      user: root
+      state: present
+      key: "{{ lookup('file', './kub01.key.pub') }}"
