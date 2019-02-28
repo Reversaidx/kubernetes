@@ -1,8 +1,12 @@
-
 variable "project" {
   default = "the-hard-way-232407"
 }
+
 variable "REGION" {
+  default = "europe-north1"
+}
+
+variable "ZONE" {
   default = "europe-north1-a"
 }
 
